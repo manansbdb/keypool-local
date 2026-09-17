@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timezone, timedelta
+from email.utils import parsedate_to_datetime
 from typing import Optional
 
 # Matches Groq-style duration strings: "1m26.4s", "170ms", "2h5m", "30s"
@@ -188,3 +189,27 @@ def extract_remaining_requests(provider: str, headers: dict) -> Optional[int]:
         return int(val)
     except (ValueError, TypeError):
         return None
+
+
+def parse_retry_after(value: str | None) -> Optional[str]:
+    """Parse Retry-After (delta-seconds or HTTP-date) to UTC ISO. Malformed → None."""
+    if value is None:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    try:
+        seconds = int(float(raw))
+        if seconds < 0:
+            return None
+        return (datetime.now(timezone.utc) + timedelta(seconds=seconds)).isoformat()
+    except ValueError:
+        pass
+    try:
+        dt = parsedate_to_datetime(raw)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc).isoformat()
+    except (TypeError, ValueError, IndexError, OverflowError):
+        return None
+
