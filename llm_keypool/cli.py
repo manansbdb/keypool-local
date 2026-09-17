@@ -12,7 +12,7 @@ from rich import box
 from llm_keypool.key_store import KeyStore
 
 app = typer.Typer(
-    help="llm-keypool - free-tier API key pool manager",
+    help="KeyPool Local (llm-keypool) — free-tier API key pool manager",
     no_args_is_help=True,
 )
 console = Console()
@@ -81,7 +81,9 @@ def status():
 @app.command()
 def add(
     provider: str = typer.Option(..., "--provider", "-p", help="Provider name (groq, cerebras, mistral, google, ...)"),
-    key: str = typer.Option(..., "--key", "-k", help="API key string"),
+    key: Optional[str] = typer.Option(None, "--key", "-k", help="API key (LEGACY — prefer hidden prompt)"),
+    cost_tier: str = typer.Option("free", "--cost-tier", help="free|paid|unknown"),
+    quota_scope: Optional[str] = typer.Option(None, "--quota-scope", help="Shared quota scope"),
     capabilities: str = typer.Option(
         "general_purpose",
         "--capabilities", "--cap",
@@ -99,6 +101,17 @@ def add(
         console.print(f"[red]Unknown provider '{provider}'[/red]")
         console.print(f"Supported: {', '.join(sorted(configs.keys()))}")
         raise typer.Exit(1)
+
+    if key is not None:
+        from llm_keypool.crypto import warn_legacy_key_flag
+        warn_legacy_key_flag()
+        console.print("[yellow]Warning: --key is legacy (shell history). Prefer omit --key for hidden prompt.[/yellow]")
+    else:
+        import getpass
+        key = getpass.getpass("API key (hidden): ").strip()
+        if not key:
+            console.print("[red]Empty key[/red]")
+            raise typer.Exit(1)
 
     # parse capabilities
     if category and capabilities == "general_purpose":
@@ -118,6 +131,8 @@ def add(
         api_key=key,
         capabilities=caps,
         model=model or None,
+        cost_tier=cost_tier,
+        quota_scope=quota_scope,
     )
 
     if result["success"]:
@@ -149,15 +164,20 @@ def deactivate(
 @app.command(name="clear-cooldown")
 def clear_cooldown(
     id: int = typer.Option(..., "--id", help="Key ID from 'llm-keypool status'"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Confirm (required; audited)"),
 ):
-    """Clear a key's cooldown (e.g. after quota reset confirmed)."""
+    """Clear a key's cooldown (requires --yes; audited)."""
     store = KeyStore()
-    key = store.get_key_by_id(id)
+    key = store.get_key_by_id(id, reveal=False)
     if not key:
         console.print(f"[red]Key ID {id} not found[/red]")
         raise typer.Exit(1)
 
-    store.clear_cooldown(id)
+    if not yes:
+        console.print("[yellow]Refusing: clear-cooldown requires --yes (audited).[/yellow]")
+        raise typer.Exit(2)
+
+    store.clear_cooldown(id, confirmed=True, actor="cli")
     console.print(f"[green]✓[/green] Cooldown cleared for key {id} ({key['provider']})")
 
 

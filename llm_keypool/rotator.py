@@ -111,12 +111,42 @@ class Rotator:
             return "free"
         return None
 
+    def _is_free_provider(self, provider: str) -> bool:
+        return self.configs.get(provider, {}).get("free_tier") is True
+
+    def _is_free_provider(self, provider: str) -> bool:
+        """True only when configs mark free_tier=True; missing free_tier => False."""
+        return self.configs.get(provider, {}).get("free_tier") is True
+
+    def _is_free_key(self, key: dict) -> bool:
+        """Provider must be free_tier; key cost_tier paid/unknown still blocked."""
+        tier = (key.get("cost_tier_resolved") or key.get("cost_tier") or "free").lower().strip()
+        if tier in ("paid", "unknown"):
+            return False
+        return self._is_free_provider(key.get("provider", ""))
+
+    def _filter_by_free_policy(self, keys: list[dict]) -> list[dict]:
+        """FREE_ONLY / ALLOW_PAID_FALLBACK selection.
+
+        - free_only + !allow_paid_fallback: only free_tier providers (unknown blocked)
+        - free_only + allow_paid_fallback: prefer free; paid only if no free active
+        - !free_only: unchanged
+        """
+        if not free_only():
+            return keys
+        free_keys = [k for k in keys if self._is_free_key(k)]
+        if not allow_paid_fallback():
+            return free_keys
+        return free_keys if free_keys else [
+            k for k in keys if not self._is_free_key(k)
+        ]
+
+
     def _ensure_order(self, ck: str, capabilities: list[str], active_ids: set[int]):
         self._load_state(ck)
         current = self._order.get(ck, [])
         if set(current) == active_ids and current:
             return
-        # Deterministic order: by id ASC within score groups for stability
         all_keys = self.store.get_all_keys()
         candidates = [
             k for k in all_keys
@@ -131,13 +161,19 @@ class Rotator:
                 k["id"],
             ),
         )
-        self._order[ck] = [k["id"] for k in ordered]
+        # Keep only currently active ids, preserve deterministic order
+        ordered_ids = [k["id"] for k in ordered if k["id"] in active_ids]
+        # Append any active ids missing from candidates
+        for i in sorted(active_ids):
+            if i not in ordered_ids:
+                ordered_ids.append(i)
+        self._order[ck] = ordered_ids
         if ck not in self._cursor:
             self._cursor[ck] = 0
         else:
             self._cursor[ck] %= max(len(self._order[ck]), 1)
-        for k in ordered:
-            self._slot_count.setdefault(k["id"], 0)
+        for kid in ordered_ids:
+            self._slot_count.setdefault(kid, 0)
 
     def get_best_key(
         self,
@@ -148,7 +184,7 @@ class Rotator:
         require_tags: list[str] | None = None,
         tags_mode: str = "any",
         caps_match: str = "any",
-        reserve: bool = True,
+        reserve: bool = False,
         request_id: str | None = None,
     ) -> Optional[dict]:
         if isinstance(capabilities, str):
@@ -168,6 +204,7 @@ class Rotator:
             k for k in active
             if (k.get("quota_scope") or f"id:{k['id']}") not in self._request_blocked_scopes
         ]
+        active = self._filter_by_free_policy(active)
         # Optional model filter: key must support model if key has explicit model
         if model:
             filtered = []
@@ -301,10 +338,8 @@ class Rotator:
         }
 
     def mark_dispatched(self, key_data: dict):
-        """Consume a rotation slot only for a dispatched provider attempt."""
-        key_id = key_data["key_id"]
-        self._slot_count[key_id] = self._slot_count.get(key_id, 0) + 1
-        ck = key_data.get("cap_key") or self._key_last_cap_key.get(key_id, "")
+        """Note a dispatched attempt; slot counted in handle_success/handle_429."""
+        ck = key_data.get("cap_key") or self._key_last_cap_key.get(key_data["key_id"], "")
         if ck:
             self._persist_state(ck)
 
@@ -328,6 +363,7 @@ class Rotator:
             cost_filter=self._cost_filter(),
             provider_configs=self.configs,
         )
+        active = self._filter_by_free_policy(active)
         if not active:
             return None
 
@@ -381,6 +417,7 @@ class Rotator:
                 cfg = self.configs.get(provider, {})
                 cooldown = _fallback_from_config(cfg)()
         self.store.record_usage(key_id, tokens=0, was_429=True, cooldown_until=cooldown)
+        self._slot_count[key_id] = self._slot_count.get(key_id, 0) + 1
         # dispatched attempt already counted via mark_dispatched
         ck = self._key_last_cap_key.get(key_id, "")
         if ck:
@@ -413,6 +450,7 @@ class Rotator:
         self.store.record_usage(
             key_id, tokens=tokens_used, was_429=False, cooldown_until=cooldown
         )
+        self._slot_count[key_id] = self._slot_count.get(key_id, 0) + 1
         ck = self._key_last_cap_key.get(key_id, "")
         if ck:
             self._persist_state(ck)

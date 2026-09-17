@@ -236,3 +236,55 @@ def test_db_migration_from_old_path(tmp_path):
     rows = conn2.execute("SELECT api_key FROM api_keys").fetchall()
     conn2.close()
     assert rows[0][0] == "migrated_key"
+
+# --- authenticated encryption at rest ---
+
+def test_registered_key_stored_encrypted(store, db_path):
+    store.register_key("groq", "gsk_secret_plaintext", "general_purpose", None, {})
+    import sqlite3
+    conn = sqlite3.connect(str(db_path))
+    raw = conn.execute("SELECT api_key FROM api_keys").fetchone()[0]
+    conn.close()
+    assert raw.startswith("gAAAAA")
+    assert "gsk_secret_plaintext" not in raw
+
+
+def test_get_all_keys_returns_plaintext(store):
+    store.register_key("groq", "gsk_plain_out", "general_purpose", None, {})
+    keys = store.get_all_keys()
+    assert keys[0]["api_key"] == "gsk_plain_out"
+
+
+def test_duplicate_plaintext_still_rejected(store):
+    store.register_key("groq", "gsk_dup", "general_purpose", None, {})
+    result = store.register_key("groq", "gsk_dup", "general_purpose", None, {})
+    assert result["success"] is False
+
+
+def test_legacy_plaintext_row_still_readable(store, db_path):
+    """Pre-encryption rows remain readable via getters."""
+    import sqlite3
+    conn = sqlite3.connect(str(db_path))
+    conn.execute(
+        """INSERT INTO api_keys (provider, api_key, capabilities, key_fingerprint)
+           VALUES (?, ?, ?, ?)""",
+        ("groq", "legacy_plain_key", '["general_purpose"]', None),
+    )
+    conn.commit()
+    conn.close()
+    keys = store.get_all_keys()
+    plains = [k["api_key"] for k in keys]
+    assert "legacy_plain_key" in plains
+
+
+def test_update_key_encrypts(store, db_path):
+    store.register_key("groq", "old_secret", "general_purpose", None, {})
+    kid = store.get_all_keys()[0]["id"]
+    store.update_key(kid, api_key="new_secret")
+    import sqlite3
+    conn = sqlite3.connect(str(db_path))
+    raw = conn.execute("SELECT api_key FROM api_keys WHERE id=?", (kid,)).fetchone()[0]
+    conn.close()
+    assert raw.startswith("gAAAAA")
+    assert store.get_key_by_id(kid)["api_key"] == "new_secret"
+

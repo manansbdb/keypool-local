@@ -25,4 +25,4 @@ jobs:
           pip install cryptography
 
       - name: Pytest
-        run: pytest -q
+        run: pytest -q --ignore=stress_test.py

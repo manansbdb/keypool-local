@@ -207,6 +207,7 @@ class KeyStore:
             except sqlite3.OperationalError:
                 pass
             self._ensure_fingerprints_and_encrypt(conn)
+            self._ensure_fingerprint_unique(conn)
             conn.execute(
                 "INSERT INTO schema_meta (key, value) VALUES ('version', ?) "
                 "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
@@ -266,6 +267,69 @@ class KeyStore:
                     (enc, r["id"]),
                 )
 
+    def _ensure_fingerprint_unique(self, conn: sqlite3.Connection):
+        """Rebuild api_keys so UNIQUE is on (provider, key_fingerprint), not ciphertext."""
+        try:
+            cols = {r[1] for r in conn.execute("PRAGMA table_info(api_keys)").fetchall()}
+        except sqlite3.OperationalError:
+            return
+        if "key_fingerprint" not in cols:
+            return
+        for idx in conn.execute("PRAGMA index_list(api_keys)").fetchall():
+            name, unique = idx[1], idx[2]
+            if not unique:
+                continue
+            idx_cols = [c[2] for c in conn.execute(f"PRAGMA index_info('{name}')").fetchall()]
+            if idx_cols == ["provider", "key_fingerprint"]:
+                return
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS api_keys_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                provider TEXT NOT NULL,
+                api_key TEXT NOT NULL,
+                key_fingerprint TEXT,
+                capabilities TEXT NOT NULL DEFAULT '["general_purpose"]',
+                model TEXT,
+                extra_params TEXT NOT NULL DEFAULT '{}',
+                is_active INTEGER NOT NULL DEFAULT 1,
+                cost_tier TEXT NOT NULL DEFAULT 'free',
+                quota_scope TEXT,
+                tags TEXT NOT NULL DEFAULT '[]',
+                tokens_used_today INTEGER NOT NULL DEFAULT 0,
+                tokens_used_month INTEGER NOT NULL DEFAULT 0,
+                requests_today INTEGER NOT NULL DEFAULT 0,
+                requests_month INTEGER NOT NULL DEFAULT 0,
+                last_429_at TEXT,
+                cooldown_until TEXT,
+                daily_reset_date TEXT,
+                monthly_reset_month TEXT,
+                added_at TEXT NOT NULL DEFAULT (datetime('now')),
+                last_used_at TEXT,
+                UNIQUE(provider, key_fingerprint)
+            );
+            INSERT OR IGNORE INTO api_keys_new (
+                id, provider, api_key, key_fingerprint, capabilities, model,
+                extra_params, is_active, cost_tier, quota_scope, tags,
+                tokens_used_today, tokens_used_month, requests_today, requests_month,
+                last_429_at, cooldown_until, daily_reset_date, monthly_reset_month,
+                added_at, last_used_at
+            )
+            SELECT
+                id, provider, api_key, key_fingerprint,
+                COALESCE(capabilities, '["general_purpose"]'), model,
+                COALESCE(extra_params, '{}'), is_active,
+                COALESCE(cost_tier, 'free'), quota_scope, COALESCE(tags, '[]'),
+                tokens_used_today, tokens_used_month, requests_today, requests_month,
+                last_429_at, cooldown_until, daily_reset_date, monthly_reset_month,
+                added_at, last_used_at
+            FROM api_keys;
+            DROP TABLE api_keys;
+            ALTER TABLE api_keys_new RENAME TO api_keys;
+            CREATE INDEX IF NOT EXISTS idx_api_keys_fp ON api_keys(provider, key_fingerprint);
+            """
+        )
+
     # --- row helpers ---
 
     def _decrypt_row(self, row: dict, *, reveal: bool = True) -> dict:
@@ -315,16 +379,24 @@ class KeyStore:
         return []
 
     def cost_tier_of(self, row: dict, provider_configs: dict | None = None) -> str:
+        """Resolve free/paid/unknown.
+
+        Provider ``free_tier`` (when present in configs) wins over the row's
+        default ``cost_tier='free'``, so FREE_ONLY policy matches provider
+        metadata. Explicit row tiers still apply when the provider has no
+        ``free_tier`` key and the tier is not the ambiguous default alone —
+        unknown stays unknown; missing provider free_tier => not free.
+        """
+        provider = row.get("provider", "")
+        if provider_configs is not None and provider in provider_configs:
+            cfg = provider_configs.get(provider) or {}
+            if "free_tier" in cfg:
+                return "free" if cfg.get("free_tier") is True else "paid"
+            # Provider listed but free_tier omitted => treat as not free
+            return "unknown"
         tier = (row.get("cost_tier") or "").lower().strip()
         if tier in ("free", "paid", "unknown"):
-            if tier != "unknown":
-                return tier
-        if provider_configs:
-            cfg = provider_configs.get(row.get("provider", ""), {})
-            if cfg.get("free_tier") is True:
-                return "free"
-            if cfg.get("free_tier") is False:
-                return "paid"
+            return tier
         return tier or "unknown"
 
     # --- key management ---
@@ -365,7 +437,7 @@ class KeyStore:
 
         fp = key_fingerprint(api_key)
         enc = encrypt_secret(api_key)
-        scope = quota_scope or f"{provider}:{fp[:12]}"
+        scope = quota_scope or f"{provider}:{fp[:16]}"
 
         with self._conn() as conn:
             try:
@@ -490,6 +562,15 @@ class KeyStore:
             row = conn.execute("SELECT * FROM api_keys WHERE id = ?", (key_id,)).fetchone()
             return self._decrypt_row(dict(row), reveal=reveal) if row else None
 
+    def get_keys_by_quota_scope(self, scope: str, *, reveal: bool = True) -> list[dict]:
+        """Return all keys sharing a quota_scope (decrypted when reveal=True)."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                "SELECT * FROM api_keys WHERE quota_scope = ? ORDER BY id",
+                (scope,),
+            ).fetchall()
+            return [self._decrypt_row(dict(r), reveal=reveal) for r in rows]
+
     def record_usage(
         self,
         key_id: int,
@@ -512,6 +593,11 @@ class KeyStore:
             tokens_month = row["tokens_used_month"] if row["monthly_reset_month"] == month else 0
             requests_month = row["requests_month"] if row["monthly_reset_month"] == month else 0
 
+            new_tokens_today = tokens_today + tokens
+            new_tokens_month = tokens_month + tokens
+            new_requests_today = requests_today + 1
+            new_requests_month = requests_month + 1
+
             conn.execute(
                 """UPDATE api_keys SET
                     tokens_used_today   = ?,
@@ -525,8 +611,8 @@ class KeyStore:
                     monthly_reset_month = ?
                 WHERE id = ?""",
                 (
-                    tokens_today + tokens, tokens_month + tokens,
-                    requests_today + 1, requests_month + 1,
+                    new_tokens_today, new_tokens_month,
+                    new_requests_today, new_requests_month,
                     now,
                     was_429, now if was_429 else None,
                     cooldown_until,
@@ -536,6 +622,29 @@ class KeyStore:
             )
             scope = row.get("quota_scope")
             if scope:
+                # Mirror usage/cooldown onto all keys sharing this quota_scope
+                conn.execute(
+                    """UPDATE api_keys SET
+                        tokens_used_today   = ?,
+                        tokens_used_month   = ?,
+                        requests_today      = ?,
+                        requests_month      = ?,
+                        last_used_at        = ?,
+                        last_429_at         = CASE WHEN ? THEN ? ELSE last_429_at END,
+                        cooldown_until      = ?,
+                        daily_reset_date    = ?,
+                        monthly_reset_month = ?
+                    WHERE quota_scope = ? AND id != ?""",
+                    (
+                        new_tokens_today, new_tokens_month,
+                        new_requests_today, new_requests_month,
+                        now,
+                        was_429, now if was_429 else None,
+                        cooldown_until,
+                        today, month,
+                        scope, key_id,
+                    ),
+                )
                 self._bump_quota_scope(
                     conn, scope, tokens, was_429, cooldown_until, today, month, now
                 )

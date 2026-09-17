@@ -89,13 +89,13 @@ def test_deactivate_nonexistent_key():
 
 def test_clear_cooldown():
     runner.invoke(app, ["add", "--provider", "groq", "--key", "gsk_cooldown_test"])
-    result = runner.invoke(app, ["clear-cooldown", "--id", "1"])
+    result = runner.invoke(app, ["clear-cooldown", "--id", "1", "--yes"])
     assert result.exit_code == 0
     assert "cleared" in result.output.lower()
 
 
 def test_clear_cooldown_nonexistent():
-    result = runner.invoke(app, ["clear-cooldown", "--id", "9999"])
+    result = runner.invoke(app, ["clear-cooldown", "--id", "9999", "--yes"])
     assert result.exit_code != 0
     assert "not found" in result.output.lower()
 
@@ -122,3 +122,10 @@ def test_status_shows_registered_key_details():
     assert result.exit_code == 0
     assert "groq" in result.output
     assert "llama-3.3-70b" in result.output  # Rich may truncate long model names in table
+
+
+def test_clear_cooldown_requires_yes():
+    runner.invoke(app, ["add", "--provider", "groq", "--key", "gsk_need_yes"])
+    result = runner.invoke(app, ["clear-cooldown", "--id", "1"])
+    assert result.exit_code == 2
+    assert "requires --yes" in result.output.lower() or "refusing" in result.output.lower()

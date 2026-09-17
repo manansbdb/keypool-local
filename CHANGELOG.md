@@ -31,7 +31,7 @@ Notable **local** changes versus upstream
 
 ### Verified test snapshot (2026-09-17, Europe/Dublin)
 
-- `python -m pytest -q` → **64 passed, 2 failed** (`tests/test_rotator.py`, Executor mid-hardening). Same-day earlier baseline on a stock-like tree: **66 passed**.
+- `python -m pytest -q` → **86 passed** at docs close (2026-09-17 ~23:55 Europe/Dublin). Same-day earlier mid-hardening dips observed (64/66/78 with transient failures); final verified run: **86 passed**, 8 warnings.
 - `llm-keypool --help`, `llm-keypool providers`, `llm-keypool status` OK on a **fresh** `LLM_KEYPOOL_DB` (empty DB message expected). An older default DB may fail mid-migration until Product finishes schema migrate.
 - No live provider credentials → `stress_test.py` not run; limits not live-probed.
 
