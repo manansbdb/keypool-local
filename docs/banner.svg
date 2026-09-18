@@ -1,66 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="560" viewBox="0 0 1600 560" role="img" aria-label="KeyPool Local banner">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="560" viewBox="0 0 1600 560" role="img" aria-label="KeyPool Local dark web banner">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0f172a"/>
-      <stop offset="45%" stop-color="#1e1b4b"/>
-      <stop offset="100%" stop-color="#7c3aed"/>
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="55%" stop-color="#050805"/>
+      <stop offset="100%" stop-color="#001a0a"/>
     </linearGradient>
     <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.14"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="0%" stop-color="#00ff66" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#00ff66" stop-opacity="0.03"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#22d3ee"/>
-      <stop offset="100%" stop-color="#a78bfa"/>
-    </linearGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#020617" flood-opacity="0.4"/>
-    </filter>
+    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#00ff66" opacity="0.04"/>
+    </pattern>
   </defs>
   <rect width="1600" height="560" fill="url(#bg)"/>
-  <circle cx="1420" cy="60" r="200" fill="#22d3ee" opacity="0.12"/>
-  <circle cx="80" cy="500" r="160" fill="#a78bfa" opacity="0.14"/>
-  <circle cx="900" cy="480" r="90" fill="#34d399" opacity="0.10"/>
-  <g fill="none" stroke="#94a3b8" stroke-opacity="0.25" stroke-width="1">
+  <rect width="1600" height="560" fill="url(#scan)"/>
+  <circle cx="1400" cy="80" r="180" fill="#00ff66" opacity="0.05"/>
+  <circle cx="100" cy="480" r="140" fill="#ff0033" opacity="0.06"/>
+  <!-- matrix-ish columns -->
+  <g font-family="ui-monospace,Consolas,monospace" font-size="11" fill="#00ff66" opacity="0.18">
+    <text x="1280" y="40">01 10 11 00 01</text>
+    <text x="1280" y="58">10 01 00 11 10</text>
+    <text x="1280" y="76">11 00 01 10 01</text>
+    <text x="1450" y="120">7f 00 00 01</text>
+    <text x="1450" y="138">ff ee dd cc</text>
+  </g>
+  <g fill="none" stroke="#00ff66" stroke-opacity="0.35" stroke-width="1">
     <path d="M40 40h24M40 40v24"/><path d="M1560 40h-24M1560 40v24"/>
     <path d="M40 520h24M40 520v-24"/><path d="M1560 520h-24M1560 520v-24"/>
   </g>
-  <text x="80" y="145" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="58" font-weight="700" fill="#f8fafc">KeyPool Local</text>
-  <text x="80" y="205" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="28" fill="#a5f3fc">Local AI API key manager · encrypt · rotate · proxy</text>
-  <text x="80" y="255" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" fill="#cbd5e1">FREE_ONLY by default · Fernet at rest · loopback proxy · TUI</text>
-  <rect x="80" y="300" rx="14" ry="14" width="340" height="52" fill="#042f2e" stroke="#2dd4bf" stroke-width="2"/>
-  <text x="250" y="334" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="20" font-weight="600" fill="#99f6e4">MIT · EN/PT · runs on your machine</text>
-  <g filter="url(#soft)">
-    <g transform="translate(760,110)">
-      <rect width="180" height="150" rx="18" fill="url(#card)" stroke="#22d3ee" stroke-opacity="0.55"/>
-      <text x="90" y="58" text-anchor="middle" font-size="38">🔑</text>
-      <text x="90" y="100" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700" fill="#cffafe">ROTATE</text>
-      <text x="90" y="126" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" fill="#94a3b8">multi-provider pool</text>
+  <text x="80" y="145" font-family="ui-monospace,Consolas,monospace" font-size="56" font-weight="700" fill="#00ff66">KeyPool Local</text>
+  <text x="80" y="200" font-family="ui-monospace,Consolas,monospace" font-size="24" fill="#66ff99">local vault // encrypt // rotate // loopback</text>
+  <text x="80" y="245" font-family="ui-monospace,Consolas,monospace" font-size="18" fill="#3d7a4a">FREE_ONLY · Fernet at rest · 127.0.0.1 · no telemetry</text>
+  <rect x="80" y="290" rx="4" ry="4" width="380" height="48" fill="#001408" stroke="#00ff66" stroke-width="1.5"/>
+  <text x="270" y="321" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="18" fill="#00ff66">&gt; mit · en/pt · runs offline_</text>
+  <g>
+    <g transform="translate(760,100)">
+      <rect width="180" height="150" rx="6" fill="url(#card)" stroke="#00ff66" stroke-opacity="0.55"/>
+      <text x="90" y="58" text-anchor="middle" font-size="36">🔑</text>
+      <text x="90" y="100" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="16" font-weight="700" fill="#00ff66">ROTATE</text>
+      <text x="90" y="126" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="12" fill="#3d7a4a">key pool</text>
     </g>
-    <g transform="translate(970,110)">
-      <rect width="180" height="150" rx="18" fill="url(#card)" stroke="#a78bfa" stroke-opacity="0.55"/>
-      <text x="90" y="58" text-anchor="middle" font-size="38">🔐</text>
-      <text x="90" y="100" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700" fill="#ede9fe">ENCRYPT</text>
-      <text x="90" y="126" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" fill="#94a3b8">Fernet at rest</text>
+    <g transform="translate(970,100)">
+      <rect width="180" height="150" rx="6" fill="url(#card)" stroke="#00ff66" stroke-opacity="0.55"/>
+      <text x="90" y="58" text-anchor="middle" font-size="36">🔐</text>
+      <text x="90" y="100" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="16" font-weight="700" fill="#00ff66">ENCRYPT</text>
+      <text x="90" y="126" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="12" fill="#3d7a4a">fernet</text>
     </g>
-    <g transform="translate(1180,110)">
-      <rect width="180" height="150" rx="18" fill="url(#card)" stroke="#34d399" stroke-opacity="0.55"/>
-      <text x="90" y="58" text-anchor="middle" font-size="38">🆓</text>
-      <text x="90" y="100" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700" fill="#d1fae5">FREE_ONLY</text>
-      <text x="90" y="126" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" fill="#94a3b8">paid stays out</text>
+    <g transform="translate(1180,100)">
+      <rect width="180" height="150" rx="6" fill="url(#card)" stroke="#ff3355" stroke-opacity="0.45"/>
+      <text x="90" y="58" text-anchor="middle" font-size="36">🚫</text>
+      <text x="90" y="100" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="16" font-weight="700" fill="#ff6680">FREE_ONLY</text>
+      <text x="90" y="126" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="12" fill="#7a3d45">paid blocked</text>
     </g>
-    <g transform="translate(865,300)">
-      <rect width="180" height="150" rx="18" fill="url(#card)" stroke="#fbbf24" stroke-opacity="0.55"/>
-      <text x="90" y="58" text-anchor="middle" font-size="38">🖥️</text>
-      <text x="90" y="100" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700" fill="#fef3c7">TUI</text>
-      <text x="90" y="126" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" fill="#94a3b8">terminal dashboard</text>
+    <g transform="translate(865,290)">
+      <rect width="180" height="150" rx="6" fill="url(#card)" stroke="#00ff66" stroke-opacity="0.55"/>
+      <text x="90" y="58" text-anchor="middle" font-size="36">⬛</text>
+      <text x="90" y="100" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="16" font-weight="700" fill="#00ff66">TUI</text>
+      <text x="90" y="126" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="12" fill="#3d7a4a">crt green</text>
     </g>
-    <g transform="translate(1075,300)">
-      <rect width="180" height="150" rx="18" fill="url(#card)" stroke="#fb7185" stroke-opacity="0.55"/>
-      <text x="90" y="58" text-anchor="middle" font-size="38">🔁</text>
-      <text x="90" y="100" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700" fill="#ffe4e6">PROXY</text>
-      <text x="90" y="126" text-anchor="middle" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" fill="#94a3b8">127.0.0.1 only</text>
+    <g transform="translate(1075,290)">
+      <rect width="180" height="150" rx="6" fill="url(#card)" stroke="#00ff66" stroke-opacity="0.55"/>
+      <text x="90" y="58" text-anchor="middle" font-size="36">↺</text>
+      <text x="90" y="100" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="16" font-weight="700" fill="#00ff66">PROXY</text>
+      <text x="90" y="126" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="12" fill="#3d7a4a">127.0.0.1</text>
     </g>
   </g>
 </svg>

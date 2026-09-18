@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/hero.png" alt="KeyPool Local — vault of floating keys over a bioluminescent pool" width="92%" />
+  <img src="docs/hero.png" alt="KeyPool Local — dark-web vault, green keyhole shield" width="92%" />
 </p>
 
 <h1 align="center">KeyPool Local</h1>
@@ -16,9 +16,9 @@
 <p align="center">
   <a href="https://github.com/manansbdb/keypool-local/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge" alt="MIT" /></a>
   <img src="https://img.shields.io/badge/lang-EN%20%7C%20PT-3b82f6?style=for-the-badge" alt="EN PT" />
-  <img src="https://img.shields.io/badge/FREE__ONLY-default-0ea5e9?style=for-the-badge" alt="FREE_ONLY" />
-  <img src="https://img.shields.io/badge/crypto-Fernet-a855f7?style=for-the-badge" alt="Fernet" />
-  <img src="https://img.shields.io/badge/proxy-127.0.0.1-f59e0b?style=for-the-badge" alt="loopback" />
+  <img src="https://img.shields.io/badge/FREE__ONLY-default-00ff66?style=for-the-badge" alt="FREE_ONLY" />
+  <img src="https://img.shields.io/badge/crypto-Fernet-00ff66?style=for-the-badge" alt="Fernet" />
+  <img src="https://img.shields.io/badge/proxy-127.0.0.1-111111?style=for-the-badge" alt="loopback" />
   <a href="https://github.com/manansbdb/keypool-local/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/manansbdb/keypool-local/ci.yml?branch=main&amp;style=for-the-badge&amp;label=CI" alt="CI" /></a>
 </p>
 
@@ -46,18 +46,18 @@ flowchart LR
   A["🔑 Your keys\non disk"] --> B["🔐 Fernet\nat rest"]
   B --> C["♻️ Rotator\nFREE_ONLY"]
   C --> D["🖥️ TUI / CLI\nor 🔁 proxy"]
-  style A fill:#0ea5e9,stroke:#0369a1,color:#fff
-  style B fill:#8b5cf6,stroke:#6d28d9,color:#fff
-  style C fill:#22c55e,stroke:#15803d,color:#fff
-  style D fill:#f59e0b,stroke:#b45309,color:#fff
+  style A fill:#003311,stroke:#00ff66,color:#00ff66
+  style B fill:#001a00,stroke:#00ff66,color:#00ff66
+  style C fill:#0a0a0a,stroke:#ff3355,color:#ff6680
+  style D fill:#111111,stroke:#00ff66,color:#66ff99
 ```
 
 <p align="center">
-  <img src="docs/features.png" alt="KeyPool Local — midnight workshop, Fernet cipher, localhost carousel" width="92%" />
+  <img src="docs/features.png" alt="KeyPool Local — dark-web triptych CRT / Fernet / localhost" width="92%" />
 </p>
 
 <p align="center">
-  <img src="docs/underwater.png" alt="KeyPool Local — underwater school of keys" width="92%" />
+  <img src="docs/underwater.png" alt="KeyPool Local — abyssal dark-web key vault" width="92%" />
 </p>
 
 ---
