@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/hero.png" alt="KeyPool Local hero — encrypted local key pool" width="92%" />
+  <img src="docs/hero.png" alt="KeyPool Local — vault of floating keys over a bioluminescent pool" width="92%" />
 </p>
 
 <h1 align="center">KeyPool Local</h1>
@@ -53,7 +53,7 @@ flowchart LR
 ```
 
 <p align="center">
-  <img src="docs/features.png" alt="KeyPool Local — encrypt, rotate, TUI" width="92%" />
+  <img src="docs/features.png" alt="KeyPool Local — midnight workshop, Fernet cipher, localhost carousel" width="92%" />
 </p>
 
 ---
