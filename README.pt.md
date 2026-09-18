@@ -1,4 +1,25 @@
-# KeyPool Local (`llm-keypool`)
+<p align="center">
+  <img src="docs/banner.svg" alt="KeyPool Local banner" width="100%" />
+</p>
+
+<p align="center">
+  <img src="docs/hero.png" alt="KeyPool Local hero" width="92%" />
+</p>
+
+<h1 align="center">KeyPool Local</h1>
+
+<p align="center">
+  <strong>PT</strong> Gestor local de chaves de APIs de IA — encriptar, rodar, auditar, TUI e proxy em loopback
+</p>
+
+<p align="center">
+  <a href="https://github.com/manansbdb/keypool-local/blob/main/LICENSE"><img src="https://img.shields.io/badge/licença-MIT-22c55e?style=for-the-badge" alt="MIT" /></a>
+  <img src="https://img.shields.io/badge/FREE__ONLY-padrão-0ea5e9?style=for-the-badge" alt="FREE_ONLY" />
+  <img src="https://img.shields.io/badge/crypto-Fernet-a855f7?style=for-the-badge" alt="Fernet" />
+  <a href="./README.md">English README</a>
+</p>
+
+---
 
 Pool local de chaves de API de LLM (free tier / contas próprias). Você cadastra as chaves uma vez; o `llm-keypool` faz round-robin, trata cooldown de 429 e tenta outra chave automaticamente.
 
@@ -11,6 +32,19 @@ Integração documentada com Hermes Agent: veja [docs/hermes-agent.md](docs/herm
 > (consultado em 2026-09-17T22:35:26Z, licença MIT). Ver [UPSTREAM.md](UPSTREAM.md) e [CHANGELOG.md](CHANGELOG.md).
 
 ---
+
+
+
+## Capturas
+
+<p align="center">
+  <img src="docs/screenshots/tui-keys.png" alt="TUI — lista de chaves" width="48%" />
+  <img src="docs/screenshots/tui-add-key.png" alt="TUI — adicionar chave" width="48%" />
+</p>
+
+<p align="center">
+  <img src="docs/features.png" alt="Encrypt · rotate · TUI" width="92%" />
+</p>
 
 ## Aviso importante (o que isto NÃO é)
 
@@ -47,8 +81,7 @@ cd /workspace/keypool-local
 uv venv .venv
 source .venv/bin/activate
 uv pip install -e ".[all,dev]"
-# necessário para crypto local (Fernet); ainda não declarado no pyproject neste snapshot
-uv pip install cryptography
+# cryptography já vem em pyproject/requirements (>=42)
 
 # verificar CLI
 llm-keypool --help
@@ -192,3 +225,12 @@ Snapshot 2026-09-17 (Europe/Dublin, UTC+1): **86 passed**, 8 warnings (fecho da 
 ## Licença
 
 MIT (upstream e este fork).
+
+
+---
+
+## Apoio
+
+Gorjeta opcional em Bitcoin (sem paywall):
+
+`bc1q0qfnlnxyum9u45stzxe0a7jnhtj4j0usfkqdjw`
