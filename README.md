@@ -56,6 +56,10 @@ flowchart LR
   <img src="docs/features.png" alt="KeyPool Local — midnight workshop, Fernet cipher, localhost carousel" width="92%" />
 </p>
 
+<p align="center">
+  <img src="docs/underwater.png" alt="KeyPool Local — underwater school of keys" width="92%" />
+</p>
+
 ---
 
 ## What this software does NOT do / O que NÃO faz
